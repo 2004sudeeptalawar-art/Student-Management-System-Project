@@ -1,0 +1,8 @@
+{
+    "python.defaultInterpreterPath": "C:\\Users\\kioskUser0\\AppData\\Local\\Programs\\Python\\Python314\\python.exe",
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true
+    },
+    "editor.formatOnSave": true
+}

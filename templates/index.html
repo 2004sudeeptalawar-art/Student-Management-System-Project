@@ -1,0 +1,549 @@
+<!DOCTYPE html>
+<html lang="en" data-bs-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="EduManage - Professional, modern, and responsive Student Management System powered by Flask and MySQL.">
+    <title>EduManage | Student Management System</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <!-- Custom Modern Stylesheet -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+    <!-- Toast Notification Container -->
+    <div id="toastContainer" class="toast-container-custom"></div>
+
+    <div class="app-wrapper">
+        <!-- Sidebar Navigation -->
+        <aside id="appSidebar" class="app-sidebar">
+            <div class="sidebar-brand">
+                <div class="brand-icon-box">
+                    <i class="bi bi-mortarboard-fill"></i>
+                </div>
+                <div>
+                    <div class="brand-text-title">EduManage</div>
+                    <div class="brand-text-subtitle">Student Portal</div>
+                </div>
+            </div>
+
+            <div class="sidebar-menu">
+                <div class="sidebar-heading">Main Navigation</div>
+                <div class="nav-item">
+                    <a id="navDashboard" class="nav-link-custom active" href="#">
+                        <i class="bi bi-grid-1x2-fill"></i>
+                        <span>Dashboard</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a id="navStudents" class="nav-link-custom" href="#">
+                        <i class="bi bi-people-fill"></i>
+                        <span>All Students</span>
+                    </a>
+                </div>
+
+                <div class="sidebar-heading mt-4">Quick Management</div>
+                <div class="nav-item">
+                    <a class="nav-link-custom" href="#" onclick="openAddStudentModal(); return false;">
+                        <i class="bi bi-person-plus-fill"></i>
+                        <span>Add New Student</span>
+                    </a>
+                </div>
+                <div class="nav-item">
+                    <a class="nav-link-custom" href="#" onclick="exportStudentsToCsv(); return false;">
+                        <i class="bi bi-file-earmark-spreadsheet-fill"></i>
+                        <span>Export Dataset</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="db-status-badge">
+                    <div id="dbStatusDot" class="status-dot"></div>
+                    <span id="dbStatusText" class="text-truncate">Connecting to MySQL...</span>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="app-main">
+            <!-- Top Navigation Bar -->
+            <header class="app-topbar">
+                <div class="topbar-left">
+                    <button id="sidebarToggleBtn" class="sidebar-toggle-btn" aria-label="Toggle Sidebar">
+                        <i class="bi bi-list fs-5"></i>
+                    </button>
+                    <div class="d-none d-sm-block">
+                        <h5 class="mb-0 fw-bold">Student Management System</h5>
+                        <span class="text-muted small">Academic Year 2026-2027</span>
+                    </div>
+                </div>
+
+                <div class="topbar-right">
+                    <button class="btn btn-outline-custom d-none d-md-inline-flex" onclick="exportStudentsToCsv()">
+                        <i class="bi bi-download"></i>
+                        <span>Export CSV</span>
+                    </button>
+                    <button class="btn-primary-custom" onclick="openAddStudentModal()">
+                        <i class="bi bi-plus-lg"></i>
+                        <span class="d-none d-sm-inline">Add Student</span>
+                    </button>
+                    <button id="themeToggleBtn" class="theme-toggle-btn" title="Toggle Light/Dark Theme">
+                        <i id="themeToggleIcon" class="bi bi-moon-stars-fill"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Body Content -->
+            <div class="content-body">
+
+                <!-- ==========================================
+                     VIEW 1: DASHBOARD OVERVIEW
+                     ========================================== -->
+                <section id="dashboardSection">
+                    <!-- Welcome Hero Header -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                        <div>
+                            <h2 class="fw-bold mb-1">Administrative Overview</h2>
+                            <p class="text-muted mb-0">Track student enrollments, departmental distributions, and recent admissions.</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-custom" onclick="loadDashboardStats(); showToast('Refreshed', 'Dashboard metrics updated.', 'info');">
+                                <i class="bi bi-arrow-clockwise"></i> Refresh
+                            </button>
+                            <button class="btn btn-primary-custom" onclick="switchView('students')">
+                                <i class="bi bi-table"></i> View Student Directory
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Metric Widgets Row -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="dash-card stat-widget" style="--widget-soft: rgba(79, 70, 229, 0.1); --widget-color: #4f46e5; --widget-glow: rgba(79, 70, 229, 0.2);">
+                                <div class="stat-widget-icon">
+                                    <i class="bi bi-people-fill"></i>
+                                </div>
+                                <div id="statTotalStudents" class="stat-widget-value">0</div>
+                                <div class="stat-widget-label">Total Enrolled</div>
+                                <div class="stat-widget-meta">
+                                    <i class="bi bi-check-circle-fill"></i> Active in MySQL Database
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="dash-card stat-widget" style="--widget-soft: rgba(14, 165, 233, 0.1); --widget-color: #0ea5e9; --widget-glow: rgba(14, 165, 233, 0.2);">
+                                <div class="stat-widget-icon">
+                                    <i class="bi bi-building-fill"></i>
+                                </div>
+                                <div id="statTotalDepts" class="stat-widget-value">0</div>
+                                <div class="stat-widget-label">Departments</div>
+                                <div class="stat-widget-meta text-info">
+                                    <i class="bi bi-diagram-3-fill"></i> Academic faculties
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="dash-card stat-widget" style="--widget-soft: rgba(16, 185, 129, 0.1); --widget-color: #10b981; --widget-glow: rgba(16, 185, 129, 0.2);">
+                                <div class="stat-widget-icon">
+                                    <i class="bi bi-journal-bookmark-fill"></i>
+                                </div>
+                                <div id="statTotalCourses" class="stat-widget-value">0</div>
+                                <div class="stat-widget-label">Active Programs</div>
+                                <div class="stat-widget-meta">
+                                    <i class="bi bi-award-fill"></i> Degree offerings
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-sm-6 col-xl-3">
+                            <div class="dash-card stat-widget" style="--widget-soft: rgba(245, 158, 11, 0.1); --widget-color: #f59e0b; --widget-glow: rgba(245, 158, 11, 0.2);">
+                                <div class="stat-widget-icon">
+                                    <i class="bi bi-lightning-charge-fill"></i>
+                                </div>
+                                <div id="statRecentCount" class="stat-widget-value">0</div>
+                                <div class="stat-widget-label">Recent Admissions</div>
+                                <div class="stat-widget-meta text-warning">
+                                    <i class="bi bi-clock-history"></i> Latest intake
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Two Column Section: Recent Students & Department Breakdown -->
+                    <div class="row g-4">
+                        <!-- Recent Students Column -->
+                        <div class="col-lg-7">
+                            <div class="dash-card p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-0">Recently Added Students</h5>
+                                        <span class="text-muted small">Latest student registrations</span>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-custom" onclick="switchView('students')">
+                                        View All <i class="bi bi-arrow-right ms-1"></i>
+                                    </button>
+                                </div>
+                                <div class="table-responsive">
+                                    <table class="table-custom">
+                                        <thead>
+                                            <tr>
+                                                <th>Student</th>
+                                                <th>ID</th>
+                                                <th>Department</th>
+                                                <th>Course</th>
+                                                <th class="text-end">Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="recentStudentsTableBody">
+                                            <!-- Dynamically populated -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Department Enrollment Distribution -->
+                        <div class="col-lg-5">
+                            <div class="dash-card p-4 h-100">
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <div>
+                                        <h5 class="fw-bold mb-0">Enrollment by Department</h5>
+                                        <span class="text-muted small">Student capacity distribution</span>
+                                    </div>
+                                    <span class="badge bg-primary-subtle text-primary border">Live Data</span>
+                                </div>
+                                <div id="deptBreakdownContainer" class="pt-2">
+                                    <!-- Dynamically populated -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ==========================================
+                     VIEW 2: STUDENT MANAGEMENT DIRECTORY
+                     ========================================== -->
+                <section id="studentsSection" class="d-none">
+                    <!-- Page Header -->
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-3">
+                        <div>
+                            <h2 class="fw-bold mb-1">Student Management Directory</h2>
+                            <p class="text-muted mb-0">Search, filter, view, update, and manage all student enrollment records.</p>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <button class="btn btn-outline-custom" onclick="exportStudentsToCsv()">
+                                <i class="bi bi-file-earmark-arrow-down"></i> Export
+                            </button>
+                            <button class="btn-primary-custom" onclick="openAddStudentModal()">
+                                <i class="bi bi-person-plus-fill"></i> Add New Student
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Filter & Search Toolbar Card -->
+                    <div class="dash-card toolbar-card">
+                        <div class="row g-3 align-items-center">
+                            <!-- Live Search Input -->
+                            <div class="col-md-4">
+                                <div class="search-input-wrapper">
+                                    <i class="bi bi-search"></i>
+                                    <input id="searchInput" type="text" class="form-control search-input" placeholder="Search by name, ID, email, phone...">
+                                </div>
+                            </div>
+
+                            <!-- Department Filter -->
+                            <div class="col-sm-6 col-md-3">
+                                <select id="filterDepartment" class="form-select form-select-custom">
+                                    <option value="">All Departments</option>
+                                </select>
+                            </div>
+
+                            <!-- Course Filter -->
+                            <div class="col-sm-6 col-md-3">
+                                <select id="filterCourse" class="form-select form-select-custom">
+                                    <option value="">All Courses</option>
+                                </select>
+                            </div>
+
+                            <!-- Gender & Reset Button -->
+                            <div class="col-md-2 d-flex gap-2">
+                                <select id="filterGender" class="form-select form-select-custom">
+                                    <option value="">Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                                <button id="resetFiltersBtn" class="btn btn-outline-custom" title="Reset Filters">
+                                    <i class="bi bi-arrow-counterclockwise"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Students Table Container -->
+                    <div id="studentsTableContainer" class="table-responsive-custom">
+                        <table class="table-custom">
+                            <thead>
+                                <tr>
+                                    <th>Student</th>
+                                    <th>Student ID</th>
+                                    <th>Contact Info</th>
+                                    <th>Program / Dept</th>
+                                    <th>Gender</th>
+                                    <th>Enrolled Date</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="studentsTableBody">
+                                <!-- Populated dynamically by JavaScript -->
+                            </tbody>
+                        </table>
+
+                        <!-- Table Footer with Pagination -->
+                        <div class="p-3 d-flex flex-wrap justify-content-between align-items-center border-top gap-3">
+                            <div class="d-flex align-items-center gap-3">
+                                <span id="paginationSummary" class="text-muted small">Showing records...</span>
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="text-muted small">Per page:</span>
+                                    <select id="pageSizeSelect" class="form-select form-select-sm" style="width: 75px;">
+                                        <option value="5">5</option>
+                                        <option value="8" selected>8</option>
+                                        <option value="15">15</option>
+                                        <option value="25">25</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <nav aria-label="Table pagination">
+                                <ul id="paginationControls" class="pagination pagination-sm mb-0">
+                                    <!-- Pagination links populated dynamically -->
+                                </ul>
+                            </nav>
+                        </div>
+                    </div>
+
+                    <!-- Empty State (When no results found) -->
+                    <div id="studentsEmptyState" class="dash-card empty-state d-none">
+                        <i class="bi bi-search empty-state-icon"></i>
+                        <h4 class="empty-state-title">No Students Found</h4>
+                        <p class="empty-state-desc">No records match your active search or filter criteria. Try adjusting your query or reset the filters.</p>
+                        <button class="btn btn-outline-custom" onclick="document.getElementById('resetFiltersBtn').click()">
+                            Reset Filters
+                        </button>
+                    </div>
+                </section>
+
+            </div>
+        </main>
+    </div>
+
+    <!-- ==========================================
+         MODAL 1: ADD / EDIT STUDENT
+         ========================================== -->
+    <div class="modal fade" id="studentFormModal" tabindex="-1" aria-labelledby="studentModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 id="studentModalTitle" class="modal-title">Add New Student</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <form id="studentForm" novalidate>
+                    <div class="modal-body p-4">
+                        <div class="row g-3">
+                            <!-- Student ID -->
+                            <div class="col-md-6">
+                                <label for="formStudentId" class="form-label">Student ID <span class="text-danger">*</span></label>
+                                <div class="input-group">
+                                    <input type="text" id="formStudentId" class="form-control" placeholder="e.g. STU-2026-101" required>
+                                    <button type="button" id="btnAutoGenerateId" class="btn btn-outline-custom" title="Auto-generate a unique ID">
+                                        <i class="bi bi-magic"></i> Auto
+                                    </button>
+                                </div>
+                                <div class="form-text small">Unique institutional identifier.</div>
+                            </div>
+
+                            <!-- Full Name -->
+                            <div class="col-md-6">
+                                <label for="formFullName" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" id="formFullName" class="form-control" placeholder="e.g. Alex Morgan" required>
+                            </div>
+
+                            <!-- Email Address -->
+                            <div class="col-md-6">
+                                <label for="formEmail" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" id="formEmail" class="form-control" placeholder="alex.morgan@university.edu" required>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="col-md-6">
+                                <label for="formPhone" class="form-label">Phone Number <span class="text-danger">*</span></label>
+                                <input type="tel" id="formPhone" class="form-control" placeholder="+1 (555) 000-0000" required>
+                            </div>
+
+                            <!-- Date of Birth -->
+                            <div class="col-md-6">
+                                <label for="formDob" class="form-label">Date of Birth <span class="text-danger">*</span></label>
+                                <input type="date" id="formDob" class="form-control" required>
+                            </div>
+
+                            <!-- Gender -->
+                            <div class="col-md-6">
+                                <label for="formGender" class="form-label">Gender <span class="text-danger">*</span></label>
+                                <select id="formGender" class="form-select" required>
+                                    <option value="" disabled selected>Select Gender</option>
+                                    <option value="Male">Male</option>
+                                    <option value="Female">Female</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+
+                            <!-- Department -->
+                            <div class="col-md-6">
+                                <label for="formDepartment" class="form-label">Department <span class="text-danger">*</span></label>
+                                <input type="text" id="formDepartment" list="departmentDatalist" class="form-control" placeholder="e.g. Computer Science" required>
+                                <datalist id="departmentDatalist"></datalist>
+                            </div>
+
+                            <!-- Course / Degree -->
+                            <div class="col-md-6">
+                                <label for="formCourse" class="form-label">Course / Program <span class="text-danger">*</span></label>
+                                <input type="text" id="formCourse" list="courseDatalist" class="form-control" placeholder="e.g. B.Tech Computer Science" required>
+                                <datalist id="courseDatalist"></datalist>
+                            </div>
+
+                            <!-- Enrollment Date -->
+                            <div class="col-md-12">
+                                <label for="formEnrollmentDate" class="form-label">Enrollment Date <span class="text-danger">*</span></label>
+                                <input type="date" id="formEnrollmentDate" class="form-control" required>
+                            </div>
+
+                            <!-- Residential Address -->
+                            <div class="col-md-12">
+                                <label for="formAddress" class="form-label">Residential Address <span class="text-danger">*</span></label>
+                                <textarea id="formAddress" class="form-control" rows="2" placeholder="Full street address, city, state, postal code" required></textarea>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="studentFormSubmitBtn" class="btn-primary-custom">
+                            <i class="bi bi-person-plus-fill me-1"></i> Save Student
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 2: VIEW STUDENT DETAILS PROFILE
+         ========================================== -->
+    <div class="modal fade" id="viewStudentModal" tabindex="-1" aria-labelledby="viewModalTitle" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content overflow-hidden">
+                <!-- Profile Header Banner -->
+                <div class="profile-hero">
+                    <div id="viewAvatar" class="profile-avatar-lg">ST</div>
+                    <div>
+                        <h4 id="viewFullName" class="mb-1 fw-bold text-white">Student Name</h4>
+                        <div class="d-flex align-items-center gap-2 flex-wrap">
+                            <span id="viewStudentId" class="badge bg-white text-dark fw-bold">STU-000</span>
+                            <span id="viewDepartment" class="badge bg-white text-dark bg-opacity-75">Department</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Profile Detailed Information Grid -->
+                <div class="profile-info-grid">
+                    <div>
+                        <div class="info-item-label">Email Address</div>
+                        <div id="viewEmail" class="info-item-value">-</div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Phone Number</div>
+                        <div id="viewPhone" class="info-item-value">-</div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Academic Program / Course</div>
+                        <div id="viewCourse" class="info-item-value text-primary">-</div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Enrollment Date</div>
+                        <div id="viewEnrollmentDate" class="info-item-value">-</div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Date of Birth</div>
+                        <div id="viewDob" class="info-item-value">-</div>
+                    </div>
+                    <div>
+                        <div class="info-item-label">Gender</div>
+                        <div id="viewGender" class="info-item-value">-</div>
+                    </div>
+                    <div class="col-span-2" style="grid-column: span 2;">
+                        <div class="info-item-label">Residential Address</div>
+                        <div id="viewAddress" class="info-item-value">-</div>
+                    </div>
+                    <div class="col-span-2" style="grid-column: span 2;">
+                        <div class="info-item-label">Record Created Timestamp</div>
+                        <div id="viewCreatedAt" class="text-muted small">-</div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-custom" onclick="window.print()">
+                        <i class="bi bi-printer me-1"></i> Print
+                    </button>
+                    <button type="button" id="viewModalDeleteBtn" class="btn btn-action-delete px-3 py-2">
+                        <i class="bi bi-trash me-1"></i> Delete
+                    </button>
+                    <button type="button" id="viewModalEditBtn" class="btn-primary-custom">
+                        <i class="bi bi-pencil-square me-1"></i> Edit Record
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==========================================
+         MODAL 3: DELETE CONFIRMATION DIALOG
+         ========================================== -->
+    <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-sm" style="max-width: 420px;">
+            <div class="modal-content text-center p-3">
+                <div class="modal-body">
+                    <div class="mb-3 text-danger">
+                        <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
+                    </div>
+                    <h5 class="fw-bold mb-2">Delete Student Record?</h5>
+                    <p class="text-muted small mb-3">
+                        Are you sure you want to permanently delete <strong id="deleteStudentName" class="text-dark">this student</strong> from the MySQL database? This action cannot be undone.
+                    </p>
+                    <div class="d-flex justify-content-center gap-2">
+                        <button type="button" class="btn btn-outline-custom" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" id="confirmDeleteBtn" class="btn btn-danger px-3">
+                            <i class="bi bi-trash me-1"></i> Delete Student
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5.3.3 JS Bundle -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Application JavaScript Logic -->
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
