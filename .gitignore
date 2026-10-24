@@ -25,3 +25,8 @@ ENV/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Archives
+*.zip
+student-management-system.zip
+

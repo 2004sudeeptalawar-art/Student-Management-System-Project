@@ -115,5 +115,91 @@ http://127.0.0.1:5000
 
 ## 💻 Running in Visual Studio Code
 1. Open Visual Studio Code.
-2. Select **File > Open Folder...** and choose `C:\Users\kioskUser0\.gemini\antigravity-ide\scratch\student-management-system`.
+2. Open this project directory.
 3. Press `F5` or click **Run > Start Debugging** to launch the project using the preconfigured `.vscode/launch.json`.
+
+---
+
+## 🌐 Cloud Deployment Guide
+
+Because this application uses **Flask** and **MySQL**, deployment requires hosting both the Python web application and the MySQL database. Here are the 3 best platforms:
+
+### Option 1: Railway (Easiest - Flask + MySQL in One Project)
+[Railway.app](https://railway.app/) provides native support for both Python services and MySQL with zero configuration.
+
+1. **Push your code to GitHub** (see GitHub section below).
+2. Go to [railway.app](https://railway.app/) and sign in with GitHub.
+3. Click **"New Project" > "Provision MySQL"**.
+4. In the same project, click **"New" > "GitHub Repo"** and select `Student-Management-System-Project`.
+5. Railway will automatically detect the `Procfile` and `requirements.txt`.
+6. In your web service settings, add Environment Variables referencing your MySQL service:
+   - `DB_HOST`: `${{MySQL.MYSQLHOST}}`
+   - `DB_PORT`: `${{MySQL.MYSQLPORT}}`
+   - `DB_USER`: `${{MySQL.MYSQLUSER}}`
+   - `DB_PASSWORD`: `${{MySQL.MYSQLPASSWORD}}`
+   - `DB_NAME`: `${{MySQL.MYSQLDATABASE}}`
+   - `SECRET_KEY`: A secure random string
+7. Railway will deploy your app and provide a public `https://...up.railway.app` URL. The database tables initialize automatically on startup!
+
+---
+
+### Option 2: Render + Free Hosted MySQL (TiDB / Aiven / Clever Cloud)
+[Render](https://render.com/) offers a free tier for Web Services:
+
+1. **Host MySQL database**:
+   - Create a free MySQL instance on [Aiven.io](https://aiven.io/), [TiDB Cloud](https://tidbcloud.com/), or [Clever Cloud](https://www.clever-cloud.com/).
+   - Copy your database host, port, user, password, and database name.
+2. **Deploy on Render**:
+   - Sign up at [render.com](https://render.com/) and connect your GitHub account.
+   - Click **"New" > "Web Service"** and select `Student-Management-System-Project`.
+   - Build Command: `pip install -r requirements.txt`
+   - Start Command: `gunicorn app:app`
+   - Add Environment Variables:
+     - `DB_HOST`
+     - `DB_PORT`
+     - `DB_USER`
+     - `DB_PASSWORD`
+     - `DB_NAME`
+     - `SECRET_KEY`
+3. Click **"Create Web Service"**. Render will build and deploy your project with HTTPS enabled.
+
+---
+
+### Option 3: PythonAnywhere (Free Student Friendly)
+[PythonAnywhere](https://www.pythonanywhere.com/) provides free Python hosting with built-in MySQL:
+
+1. Sign up for a free account at [pythonanywhere.com](https://www.pythonanywhere.com/).
+2. Under the **Databases** tab, initialize your free MySQL database and note your database credentials and database name (`yourusername$student_management`).
+3. Open a **Bash Console** and clone your repo:
+   ```bash
+   git clone https://github.com/2004sudeeptalawar-art/Student-Management-System-Project.git
+   cd Student-Management-System-Project
+   pip install --user -r requirements.txt
+   python init_db.py
+   ```
+4. Under the **Web** tab, create a new Flask web app pointing to your virtualenv and `app.py`.
+5. Set environment variables in your WSGI configuration or `.env` file and click **Reload**.
+
+---
+
+## 🔗 Syncing with GitHub
+
+To push your latest changes or link your repository:
+
+```bash
+# 1. Check changed files
+git status
+
+# 2. Stage all changes
+git add .
+
+# 3. Commit changes
+git commit -m "feat: add gunicorn, Procfile, cloud DB init, and GitHub links"
+
+# 4. Push to GitHub
+git push origin main
+```
+
+Your GitHub repository:  
+👉 **[https://github.com/2004sudeeptalawar-art/Student-Management-System-Project](https://github.com/2004sudeeptalawar-art/Student-Management-System-Project)**
+

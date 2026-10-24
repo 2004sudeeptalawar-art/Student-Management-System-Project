@@ -42,13 +42,22 @@ def get_db_connection(use_database=True):
 def init_database():
     """
     Ensure the student_management database and students table exist.
+    Supports both local development and hosted/cloud MySQL providers.
     """
     try:
-        # Connect to MySQL server without database specified
-        conn = get_db_connection(use_database=False)
+        # Step 1: Attempt to create database if permitted (works on local MySQL root)
+        try:
+            conn_admin = get_db_connection(use_database=False)
+            with conn_admin.cursor() as cur:
+                cur.execute(f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
+            conn_admin.close()
+        except Exception:
+            # On managed cloud databases (Railway, TiDB, PythonAnywhere), the database is pre-allocated
+            pass
+
+        # Step 2: Connect to the target database and ensure table schema exists
+        conn = get_db_connection(use_database=True)
         with conn.cursor() as cur:
-            cur.execute(f"CREATE DATABASE IF NOT EXISTS `{DB_NAME}` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;")
-            cur.execute(f"USE `{DB_NAME}`;")
             cur.execute("""
                 CREATE TABLE IF NOT EXISTS students (
                     id INT AUTO_INCREMENT PRIMARY KEY,

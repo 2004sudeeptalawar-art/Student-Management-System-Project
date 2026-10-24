@@ -15,6 +15,13 @@ app = Flask(__name__, static_folder="static", template_folder="templates")
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY", "student-mgmt-secret-2026")
 CORS(app)
 
+# Ensure database schema is initialized on startup (supports both local and Gunicorn/WSGI)
+try:
+    init_database()
+except Exception as err:
+    print(f"[Startup Warning] Deferred DB initialization: {err}")
+
+
 
 def serialize_row(row):
     """Format MySQL row dates and datetimes into standard ISO strings."""
